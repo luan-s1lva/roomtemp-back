@@ -1,11 +1,13 @@
 import time
 import json
+import asyncio
 import random
 import paho.mqtt.client as mqtt
 from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from typing import List
 from models import Sensor
+from database import app
 
 router = APIRouter()
 
@@ -39,7 +41,30 @@ def onMessage(client,userdata,message):
     except json.JSONDecodeError:
         lastMessage = None
     
+async def storeTempPeriodically(request:Request):
+    global lastMessage
+    while True:
+        sensorData = {
+            "temperaturaCelsius": createRandomNumbers(),
+            "idSala": createRandomRoomId()
+        }
 
+        payload = json.dumps(sensorData)
+        
+        client.loop_start()
+        client.publish("new/world", payload)
+        time.sleep(8)
+        client.loop_stop()
+
+        await asyncio.sleep(10)
+        if lastMessage != None:
+            app.database["sensors"].insert_one(lastMessage)
+            print("Nova temp armazenada: ", lastMessage)
+
+@router.on_event("startup")
+async def startTask():
+    asyncio.create_task(storeTempPeriodically(request=None))
+    
 def createRandomNumbers():
     return round(random.uniform(20, 30), 1)
 
@@ -54,29 +79,12 @@ client.on_publish=onPublish
 client.on_subscribe=onSubscribe
 client.on_message=onMessage
 
-sensorData = {
-    "temperaturaCelsius": createRandomNumbers(),
-    "idSala": createRandomRoomId()
-}
-
-payload = json.dumps(sensorData)
-
 client.connect("broker.hivemq.com")
 client.subscribe("new/world")
 
-time.sleep(4)
-
-client.loop_start()
-client.publish("new/world", payload)
-time.sleep(4)
-client.loop_stop()
-
 print("Execution finished")
-
-@router.post("/",response_description="storing new temp",response_model=Sensor)
-def storeTemp(request:Request):
-    global lastMessage
-
-    if lastMessage != None:
-        request.app.database["sensors"].insert_one(lastMessage)
         
+@router.get("/show",response_model=List[Sensor])
+def showTemps(request:Request):
+    temps = list(app.database["sensors"].find(limit=10))
+    return temps

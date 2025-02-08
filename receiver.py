@@ -69,8 +69,7 @@ def createRandomNumbers():
     return round(random.uniform(20, 30), 1)
 
 def createRandomRoomId():
-    return random.randrange(1, 150)
-
+    return random.randrange(1, 300)
 
 client = mqtt.Client(client_id="p1",callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
 
@@ -83,8 +82,3 @@ client.connect("broker.hivemq.com")
 client.subscribe("new/world")
 
 print("Execution finished")
-        
-@router.get("/show",response_model=List[Sensor])
-def showTemps(request:Request):
-    temps = list(app.database["sensors"].find(limit=10))
-    return temps

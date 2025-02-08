@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from dotenv import dotenv_values
 from pymongo import MongoClient
 from receiver import router as sensor_router
+from routes import router as showAll
 from fastapi.middleware.cors import CORSMiddleware
 
 config = dotenv_values(".env")
@@ -30,3 +31,4 @@ def shutdown_db_client():
 
 
 app.include_router(sensor_router, prefix="/temp")
+app.include_router(showAll, prefix="/temp")

@@ -6,28 +6,19 @@ import paho.mqtt.client as mqtt
 from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from typing import List
-from models import Sensor
+from models import Room
 from database import app
 
 router = APIRouter()
 
 lastMessage = None
+max_salas = app.database["salas"].find_one(sort=[("_id",-1)])
 
 def onConnect(client, userdata, flags, reason_code, properties):
     if reason_code==0:
         print("connected succesfully")
     else:
         print("impossible to connect")
-
-def onSubscribe(client, userdata, mid, reason_codes, properties):
-    for sub_result in reason_codes:
-        if sub_result == 1:
-            print("QoS == 1")
-            # process QoS == 1
-        # Any reason code >= 128 is a failure.
-        if sub_result >= 128:
-            print("error")
-            # error processing
 
 def onPublish(client, userdata, mid, reason_codes, properties):
     print(f"mid: {mid}\nclient: {client}")
@@ -41,44 +32,45 @@ def onMessage(client,userdata,message):
     except json.JSONDecodeError:
         lastMessage = None
     
+client = mqtt.Client(client_id="p1",callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+
+client.on_connect=onConnect
+client.on_publish=onPublish
+client.on_message=onMessage
+
+client.connect("broker.hivemq.com")
+client.subscribe("new/world")
+
 async def storeTempPeriodically(request:Request):
     global lastMessage
-    while True:
+    i = 0
+    while i > 10:
         sensorData = {
+            "_id": createRandomRoomId(),
             "temperaturaCelsius": createRandomNumbers(),
-            "idSala": createRandomRoomId()
+            "isLightOn": False
         }
 
         payload = json.dumps(sensorData)
-        
-        client.loop_start()
-        client.publish("new/world", payload)
-        time.sleep(8)
-        client.loop_stop()
+        i+=1
+        # client.loop_start()
+        # client.publish("new/world", payload)
+        # time.sleep(8)
+        # client.loop_stop()
 
-        await asyncio.sleep(10)
-        if lastMessage != None:
-            app.database["sensors"].insert_one(lastMessage)
-            print("Nova temp armazenada: ", lastMessage)
+        # await asyncio.sleep(10)
+        # if lastMessage != None:
+        #     app.database["salas"].insert_one(lastMessage)
+        #     print("Nova temp armazenada: ", lastMessage)
 
 @router.on_event("startup")
 async def startTask():
     asyncio.create_task(storeTempPeriodically(request=None))
     
 def createRandomNumbers():
-    return round(random.uniform(20, 30), 1)
+    return round(random.uniform(20, 33), 1)
 
 def createRandomRoomId():
-    return random.randrange(1, 300)
-
-client = mqtt.Client(client_id="p1",callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
-
-client.on_connect=onConnect
-client.on_publish=onPublish
-client.on_subscribe=onSubscribe
-client.on_message=onMessage
-
-client.connect("broker.hivemq.com")
-client.subscribe("new/world")
+    return random.randrange(1, max_salas)
 
 print("Execution finished")

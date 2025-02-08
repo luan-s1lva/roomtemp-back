@@ -1,11 +1,21 @@
-from fastapi import APIRouter,Request
+from fastapi import APIRouter,Request,Body
+from fastapi.encoders import jsonable_encoder
 from typing import List
-from models import Sensor
+from models import Room
 from database import app
 
 router = APIRouter()
 
-@router.get("/show",response_model=List[Sensor])
+@router.get("/show",response_model=List[Room])
 def showTemps(request:Request):
-    temps = list(app.database["sensors"].find(limit=100))
+    temps = list(app.database["salas"].find(limit=100))
     return temps
+
+@router.post("/add/room",response_model=Room)
+def addRoom(request:Request, room:Room = Body(...)):
+    room = jsonable_encoder(room)
+    app.database["salas"].insert_one(room)
+
+@router.delete("/remove/room")
+def removeRoom(request:Request, _id:int):
+    app.database["salas"].delete_one({"_id":_id})

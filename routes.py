@@ -34,7 +34,6 @@ def removeRoom(request:Request, _id:int):
 
 @router.put("/update/room/")
 def updateRoom(data:RoomControls):
-    print(data)
     app.database["salas"].update_one(
         {"_id": data.idSala},
         {"$set": {"isACOn": data.isACOn, "isLightOn": data.isLightOn}}

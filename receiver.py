@@ -41,36 +41,34 @@ client.on_message=onMessage
 client.connect("broker.hivemq.com")
 client.subscribe("new/world")
 
-async def storeTempPeriodically(request:Request):
+async def storeTempPeriodically():
     global lastMessage
-    i = 0
-    while i > 10:
+    while True:
         sensorData = {
-            "_id": createRandomRoomId(),
-            "temperaturaCelsius": createRandomNumbers(),
-            "isLightOn": False
+            "_id": selectRandomRoomId(),
+            "temperaturaCelsius": createRandomNumbers()
         }
 
         payload = json.dumps(sensorData)
-        i+=1
-        # client.loop_start()
-        # client.publish("new/world", payload)
-        # time.sleep(8)
-        # client.loop_stop()
 
-        # await asyncio.sleep(10)
-        # if lastMessage != None:
-        #     app.database["salas"].insert_one(lastMessage)
-        #     print("Nova temp armazenada: ", lastMessage)
+        await asyncio.sleep(30)
+        client.publish("new/world", payload)
+
+        app.database["salas"].update_one(
+            {"_id": int(selectRandomRoomId())},
+            {"$set": {"temperaturaCelsius": createRandomNumbers()}}
+        )
+        print("Nova informação armazenada")
 
 @router.on_event("startup")
 async def startTask():
-    asyncio.create_task(storeTempPeriodically(request=None))
+    asyncio.create_task(storeTempPeriodically())
     
 def createRandomNumbers():
     return round(random.uniform(20, 33), 1)
 
-def createRandomRoomId():
-    return random.randrange(1, max_salas)
-
-print("Execution finished")
+def selectRandomRoomId():
+    roomNumbers = list(app.database["salas"].distinct("_id"))
+    randomIndexRoom = random.uniform(0,int(len(roomNumbers)))
+    selectedRoom = roomNumbers[int(randomIndexRoom)]
+    return str(selectedRoom)

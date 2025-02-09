@@ -2,6 +2,7 @@ from fastapi import APIRouter,Request,Body
 from fastapi.encoders import jsonable_encoder
 from typing import List
 from models import Room
+from models import RoomControls
 from database import app
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -30,3 +31,11 @@ def addRoom(request:Request, room:Room = Body(...)):
 @router.delete("/remove/room/")
 def removeRoom(request:Request, _id:int):
     app.database["salas"].delete_one({"_id":_id})
+
+@router.put("/update/room/")
+def updateRoom(data:RoomControls):
+    print(data)
+    app.database["salas"].update_one(
+        {"_id": data.idSala},
+        {"$set": {"isACOn": data.isACOn, "isLightOn": data.isLightOn}}
+    )

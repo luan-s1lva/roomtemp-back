@@ -5,3 +5,8 @@ class Room(BaseModel):
     temperaturaCelsius: str = Field(default="30")
     isLightOn: bool = Field(default=False)
     isACOn: bool = Field(default=False)
+
+class RoomControls(BaseModel):
+    idSala: int = Field(..., alias="_id")
+    isLightOn: bool = Field(default=False)
+    isACOn: bool = Field(default=False)

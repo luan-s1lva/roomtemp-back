@@ -12,7 +12,6 @@ from database import app
 router = APIRouter()
 
 lastMessage = None
-max_salas = app.database["salas"].find_one(sort=[("_id",-1)])
 
 def onConnect(client, userdata, flags, reason_code, properties):
     if reason_code==0:

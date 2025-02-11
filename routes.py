@@ -50,6 +50,7 @@ client.subscribe("sensors/return/action")
 
 @router.get("/show",response_model=List[Room])
 def showTemps(request:Request):
+    print("Olá")
     temps = list(app.database["salas"].find(limit=100))
     return temps
 

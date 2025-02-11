@@ -4,8 +4,12 @@ from pymongo import MongoClient
 from updateRoomInfo import router as sensor_router
 from routes import router as showAll
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
-config = dotenv_values(".env")
+# config = dotenv_values(".env")
+ATLAS_URI = os.getenv("ATLAS_URI")
+DB_NAME = os.getenv("DB_NAME")
+
 
 app = FastAPI()
 
@@ -21,8 +25,8 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient(config["ATLAS_URI"])
-    app.database = app.mongodb_client[config["DB_NAME"]]
+    app.mongodb_client = MongoClient("ATLAS_URI")
+    app.database = app.mongodb_client["DB_NAME"]
     print("Connected to the MongoDB database!")
 
 @app.on_event("shutdown")

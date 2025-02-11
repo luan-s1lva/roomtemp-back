@@ -51,7 +51,7 @@ async def storeTempPeriodically():
 
         payload = json.dumps(sensorData)
 
-        await asyncio.sleep(30)
+        await asyncio.sleep(5)
         client.publish("new/world", payload)
 
         app.database["salas"].update_one(

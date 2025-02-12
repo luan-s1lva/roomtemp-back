@@ -42,12 +42,14 @@ client.subscribe("new/world")
 
 async def storeTempPeriodically():
     global lastMessage
-    while True:
+    i = 0
+    while i < 10:
         sensorData = {
             "_id": selectRandomRoomId(),
             "temperaturaCelsius": createRandomNumbers()
         }
 
+        i+=1
         payload = json.dumps(sensorData)
 
         await asyncio.sleep(5)

@@ -17,7 +17,7 @@ origins = ["*"]
 async def lifespan(app: FastAPI):
     print("Iniciando conexão com o MongoDB...")
     app.mongodb_client = MongoClient(ATLAS_URI)
-    app.database = app.mongodb_client[DB_NAME]
+    app.database = app.mongodb_client["DB_NAME"]
     print("Conectado ao MongoDB!")
 
     yield  # Aqui o app fica rodando

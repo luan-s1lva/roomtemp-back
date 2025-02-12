@@ -11,4 +11,4 @@ DB_NAME = os.getenv("DB_NAME")
 app = FastAPI()
 
 app.mongodb_client = MongoClient(ATLAS_URI)
-app.database = app.mongodb_client[DB_NAME]
+app.database = app.mongodb_client["DB_NAME"]
